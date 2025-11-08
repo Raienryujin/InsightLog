@@ -17,7 +17,7 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "InsightLog.Benchmarks", "be
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "src", "src", "{827E0CD3-B72D-47B6-A68D-7590B98EB39B}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "InsightLog.Json", "src\InsightLog.Json\InsightLog.Json.csproj", "{13266AD9-3BF2-4B64-9779-8FE12B5565A2}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "InsightLog.Json", "src\InsightLog.json\InsightLog.Json.csproj", "{13266AD9-3BF2-4B64-9779-8FE12B5565A2}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
