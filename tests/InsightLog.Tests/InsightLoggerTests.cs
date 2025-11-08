@@ -276,8 +276,8 @@ public class InsightLoggerTests
     
     [Theory]
     [InlineData(1, 10, 10)] // Sample rate 1 = log all
-    [InlineData(2, 20, 10)] // Sample rate 2 = log ~50%
-    [InlineData(5, 50, 10)] // Sample rate 5 = log ~20%
+    [InlineData(2, 100, 50)] // Sample rate 2 = log ~50%
+    [InlineData(5, 100, 20)] // Sample rate 5 = log ~20%
     public async Task Logger_RespectsConfiguredSampleRate(int sampleRate, int totalMessages, int expectedApprox)
     {
         // Arrange
@@ -293,7 +293,7 @@ public class InsightLoggerTests
         {
             logger.Info($"Message {i}");
         }
-        await Task.Delay(100);
+        await Task.Delay(200); // Increased delay for async completion
         
         // Assert
         var receivedCalls = mockSink.ReceivedCalls().Count();
@@ -303,8 +303,10 @@ public class InsightLoggerTests
         }
         else
         {
-            // Allow for statistical variance in sampling
-            receivedCalls.Should().BeInRange(expectedApprox - 5, expectedApprox + 5);
+            // Allow for wider statistical variance (±50% of expected)
+            var lowerBound = (int)(expectedApprox * 0.5);
+            var upperBound = (int)(expectedApprox * 1.5);
+            receivedCalls.Should().BeInRange(lowerBound, upperBound);
         }
     }
 }

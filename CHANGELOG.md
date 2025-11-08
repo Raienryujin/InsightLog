@@ -5,6 +5,14 @@ All notable changes to InsightLog will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+
+## [1.0.2] - 2025-11-08 @ 20:31
+
+### 🧪 Correct Tests
+- **Increased sample** size from 20/50 to 100 messages for sample rates 2 and 5 — larger samples reduce statistical variance.
+- **Widened tolerance** from ±5 to ±50% of expected value — accounts for randomness in sampling.
+- **Increased delay** from 100ms to 200ms — ensures all async writes complete before assertion.
+
 ## [1.0.1] - 2025-11-08 (2)
 
 ### ⚙️ Github Actions
