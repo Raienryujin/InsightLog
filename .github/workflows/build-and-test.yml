@@ -2,24 +2,24 @@ name: Build and Test
 
 on:
   push:
-    branches: [ master, develop ]
+    branches: [ main, develop ]
   pull_request:
-    branches: [ master ]
-  workflow_dispatch:
+    branches: [ main ]
 
 jobs:
   build:
     runs-on: ${{ matrix.os }}
     strategy:
+      fail-fast: false  # Don't cancel other jobs if one fails
       matrix:
         os: [ubuntu-latest, windows-latest, macos-latest]
         dotnet-version: ['8.0.x']
 
     steps:
-    - uses: actions/checkout@v3
+    - uses: actions/checkout@v4
     
     - name: Setup .NET
-      uses: actions/setup-dotnet@v3
+      uses: actions/setup-dotnet@v4
       with:
         dotnet-version: ${{ matrix.dotnet-version }}
     
@@ -33,8 +33,8 @@ jobs:
       run: dotnet test --no-build --configuration Release --verbosity normal --collect:"XPlat Code Coverage" --logger:trx --results-directory ./TestResults
     
     - name: Upload coverage reports to Codecov
-      if: matrix.os == 'ubuntu-latest'
-      uses: codecov/codecov-action@v3
+      if: matrix.os == 'ubuntu-latest' && success()
+      uses: codecov/codecov-action@v4
       with:
         directory: ./TestResults
         files: '*.xml'
@@ -43,19 +43,22 @@ jobs:
         fail_ci_if_error: false
     
     - name: Upload test results
-      uses: actions/upload-artifact@v3
+      uses: actions/upload-artifact@v4
       if: always()
       with:
         name: test-results-${{ matrix.os }}
         path: ./TestResults
     
     - name: Run benchmarks
-      if: matrix.os == 'ubuntu-latest'
-      run: dotnet run --project bench/InsightLog.Benchmarks/InsightLog.Benchmarks.csproj --configuration Release --framework net8.0 -- --filter * --join
+      if: matrix.os == 'ubuntu-latest' && success()
+      run: |
+        cd bench/InsightLog.Benchmarks
+        dotnet run --configuration Release --framework net8.0 -- --filter * --job short --exporters json
+      continue-on-error: true
     
     - name: Upload benchmark results
-      if: matrix.os == 'ubuntu-latest'
-      uses: actions/upload-artifact@v3
+      if: matrix.os == 'ubuntu-latest' && success()
+      uses: actions/upload-artifact@v4
       with:
         name: benchmark-results
         path: bench/InsightLog.Benchmarks/BenchmarkDotNet.Artifacts/

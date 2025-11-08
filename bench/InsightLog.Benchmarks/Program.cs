@@ -1,5 +1,6 @@
 using BenchmarkDotNet.Attributes;
 using BenchmarkDotNet.Running;
+using BenchmarkDotNet.Jobs;
 using InsightLog;
 using InsightLog.Configuration;
 using InsightLog.Sinks;
@@ -15,7 +16,7 @@ public class Program
 }
 
 [MemoryDiagnoser]
-[SimpleJob(warmupCount: 3, iterationCount: 10)]
+[SimpleJob(RuntimeMoniker.Net80)]
 public class LoggerBenchmarks
 {
     private InsightLogger _logger = null!;

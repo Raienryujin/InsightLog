@@ -5,6 +5,14 @@ All notable changes to InsightLog will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.0.1] - 2025-11-08 (2)
+
+### ⚙️ Github Actions
+- Updated all Github Actions to v4
+- Added `fail-fast:false` to strategy
+- Fixed BenchmarkDotNet configuration
+- Improved error handling
+
 ---
 
 ## [1.0.0] — 2025-11-08

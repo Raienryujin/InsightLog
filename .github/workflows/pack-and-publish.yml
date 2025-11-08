@@ -16,10 +16,10 @@ jobs:
     runs-on: ubuntu-latest
     
     steps:
-    - uses: actions/checkout@v3
+    - uses: actions/checkout@v4
     
     - name: Setup .NET
-      uses: actions/setup-dotnet@v3
+      uses: actions/setup-dotnet@v4
       with:
         dotnet-version: '8.0.x'
     
@@ -49,7 +49,7 @@ jobs:
         dotnet pack src/InsightLog.Json/InsightLog.Json.csproj --configuration Release --no-build --output ./artifacts /p:Version=${{ env.VERSION }}
     
     - name: Upload artifacts
-      uses: actions/upload-artifact@v3
+      uses: actions/upload-artifact@v4
       with:
         name: nuget-packages
         path: ./artifacts/*.nupkg
@@ -60,10 +60,11 @@ jobs:
         for package in ./artifacts/*.nupkg; do
           dotnet nuget push "$package" --api-key ${{ secrets.NUGET_API_KEY }} --source https://api.nuget.org/v3/index.json --skip-duplicate
         done
+      continue-on-error: true
     
     - name: Create GitHub Release
       if: github.event_name == 'push'
-      uses: softprops/action-gh-release@v1
+      uses: softprops/action-gh-release@v2
       with:
         files: ./artifacts/*.nupkg
         generate_release_notes: true
