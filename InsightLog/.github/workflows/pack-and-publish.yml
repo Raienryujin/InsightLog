@@ -1,0 +1,73 @@
+name: Pack and Publish
+
+on:
+  push:
+    tags:
+      - 'v*'
+  workflow_dispatch:
+    inputs:
+      version:
+        description: 'Version to publish (e.g., 1.0.0)'
+        required: true
+        type: string
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    
+    steps:
+    - uses: actions/checkout@v3
+    
+    - name: Setup .NET
+      uses: actions/setup-dotnet@v3
+      with:
+        dotnet-version: '8.0.x'
+    
+    - name: Set version
+      run: |
+        if [ "${{ github.event_name }}" == "push" ]; then
+          VERSION=${GITHUB_REF#refs/tags/v}
+        else
+          VERSION=${{ inputs.version }}
+        fi
+        echo "VERSION=$VERSION" >> $GITHUB_ENV
+    
+    - name: Restore dependencies
+      run: dotnet restore
+    
+    - name: Build
+      run: dotnet build --configuration Release --no-restore /p:Version=${{ env.VERSION }}
+    
+    - name: Test
+      run: dotnet test --configuration Release --no-build --verbosity normal
+    
+    - name: Pack
+      run: |
+        dotnet pack src/InsightLog/InsightLog.csproj --configuration Release --no-build --output ./artifacts /p:Version=${{ env.VERSION }}
+        dotnet pack src/InsightLog.Console/InsightLog.Console.csproj --configuration Release --no-build --output ./artifacts /p:Version=${{ env.VERSION }}
+        dotnet pack src/InsightLog.File/InsightLog.File.csproj --configuration Release --no-build --output ./artifacts /p:Version=${{ env.VERSION }}
+        dotnet pack src/InsightLog.Json/InsightLog.Json.csproj --configuration Release --no-build --output ./artifacts /p:Version=${{ env.VERSION }}
+    
+    - name: Upload artifacts
+      uses: actions/upload-artifact@v3
+      with:
+        name: nuget-packages
+        path: ./artifacts/*.nupkg
+    
+    - name: Publish to NuGet
+      if: github.event_name == 'push' || github.event_name == 'workflow_dispatch'
+      run: |
+        for package in ./artifacts/*.nupkg; do
+          dotnet nuget push "$package" --api-key ${{ secrets.NUGET_API_KEY }} --source https://api.nuget.org/v3/index.json --skip-duplicate
+        done
+    
+    - name: Create GitHub Release
+      if: github.event_name == 'push'
+      uses: softprops/action-gh-release@v1
+      with:
+        files: ./artifacts/*.nupkg
+        generate_release_notes: true
+        draft: false
+        prerelease: false
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

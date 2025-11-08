@@ -1,0 +1,10 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <PackageId>InsightLog.File</PackageId>
+    <Description>Rolling file sink for InsightLog with date-based rotation and size limits.</Description>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\InsightLog\InsightLog.csproj" />
+  </ItemGroup>
+</Project>
