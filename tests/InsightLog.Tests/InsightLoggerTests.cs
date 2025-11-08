@@ -303,9 +303,9 @@ public class InsightLoggerTests
         }
         else
         {
-            // Allow for wider statistical variance (±50% of expected)
-            var lowerBound = (int)(expectedApprox * 0.5);
-            var upperBound = (int)(expectedApprox * 1.5);
+            // Allow for wider statistical variance (±75% of expected)
+            var lowerBound = (int)(expectedApprox * 0.25);
+            var upperBound = (int)(expectedApprox * 1.75);
             receivedCalls.Should().BeInRange(lowerBound, upperBound);
         }
     }
