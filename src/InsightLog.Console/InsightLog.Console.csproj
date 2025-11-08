@@ -1,0 +1,10 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <PackageId>InsightLog.Console</PackageId>
+    <Description>Console sink for InsightLog with colorized output and theme support.</Description>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\InsightLog\InsightLog.csproj" />
+  </ItemGroup>
+</Project>
