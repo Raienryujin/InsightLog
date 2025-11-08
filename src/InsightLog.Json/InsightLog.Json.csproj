@@ -2,6 +2,10 @@
   <PropertyGroup>
     <PackageId>InsightLog.Json</PackageId>
     <Description>Structured JSON sink for InsightLog optimized for ELK and Seq integration.</Description>
+    <PackageIcon>icon.png</PackageIcon>
+    <ItemGroup>
+      <None Include="..\..\icon.png" Pack="true" PackagePath="/" />
+    </ItemGroup>
   </PropertyGroup>
 
   <ItemGroup>

@@ -3,7 +3,10 @@
     <PackageId>InsightLog</PackageId>
     <Description>A developer-friendly, context-aware logging library with auto context capture, timing scopes, and structured output support.</Description>
     <TargetFramework>net8.0</TargetFramework>
-    <PackageIcon></PackageIcon>
+    <PackageIcon>icon.png</PackageIcon>
+    <ItemGroup>
+      <None Include="..\..\icon.png" Pack="true" PackagePath="/" />
+    </ItemGroup>
   </PropertyGroup>
 
   <ItemGroup>

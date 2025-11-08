@@ -2,9 +2,13 @@
   <PropertyGroup>
     <PackageId>InsightLog.Console</PackageId>
     <Description>Console sink for InsightLog with colorized output and theme support.</Description>
+    <PackageIcon>icon.png</PackageIcon>
   </PropertyGroup>
 
   <ItemGroup>
     <ProjectReference Include="..\InsightLog\InsightLog.csproj" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="..\..\icon.png" Pack="true" PackagePath="/" />
   </ItemGroup>
 </Project>
