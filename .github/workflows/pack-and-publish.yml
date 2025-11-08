@@ -58,7 +58,7 @@ jobs:
       if: github.event_name == 'push' || github.event_name == 'workflow_dispatch'
       run: |
         for package in ./artifacts/*.nupkg; do
-          dotnet nuget push "$package" --api-key ${{ secrets.NUGET_API_KEY }} --source https://api.nuget.org/v3/index.json --skip-duplicate
+          dotnet nuget push "$package"  --api-key ${{ secrets.NUGET_API_KEY }} --source https://api.nuget.org/v3/index.json --skip-duplicate
         done
       continue-on-error: true
     

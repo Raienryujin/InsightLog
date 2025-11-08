@@ -7,5 +7,6 @@
   <ItemGroup>
     <ProjectReference Include="..\InsightLog\InsightLog.csproj" />
     <ProjectReference Include="..\InsightLog.File\InsightLog.File.csproj" />
+    <None Include="README.md" Pack="true" PackagePath="\" />
   </ItemGroup>
 </Project>
