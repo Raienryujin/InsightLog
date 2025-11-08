@@ -120,7 +120,7 @@ InsightLog/
 ## Getting Help
 
 * Check the [README](README.md) for usage examples
-* Look through existing [issues](https://github.com/insightlog/insightlog/issues)
+* Look through existing [issues](https://github.com/InsightLog/issues)
 * Create a new issue if your problem isn't already covered
 * Join our discussions in the [Discussions](https://github.com/insightlog/insightlog/discussions) tab
 

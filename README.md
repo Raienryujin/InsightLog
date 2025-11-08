@@ -1,6 +1,6 @@
 # 🔧 InsightLog
 
-[![Build Status](https://img.shields.io/github/actions/workflow/status/InsightLog/InsightLog/build-and-test.yml?branch=master)](https://github.com/InsightLog/InsightLog/actions/workflows/build-and-test.yml)
+[![Build Status](https://img.shields.io/github/actions/workflow/status/InsightLog/build-and-test.yml?branch=main)](https://github.com/InsightLog/actions/workflows/build-and-test.yml)
 [![NuGet](https://img.shields.io/nuget/v/InsightLog.svg)](https://www.nuget.org/packages/InsightLog/)
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
 [![.NET 8](https://img.shields.io/badge/.NET-8.0-purple.svg)](https://dotnet.microsoft.com/download/dotnet/8.0)
