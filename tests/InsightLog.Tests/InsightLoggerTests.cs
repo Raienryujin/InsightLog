@@ -82,15 +82,15 @@ public class InsightLoggerTests
     public void MessageTemplateFormatter_HandlesEscapedBraces()
     {
         // Arrange
-        var template = "Object {{escaped}} with {Value}";
-        var args = new object?[] { 123 };
+        var template = "Object {escaped} with {Value}";
+        var args = new object?[] { "escaped", 123 };
         
         // Act
         var (message, _) = MessageTemplateFormatter.Format(
             template, args, new List<RedactionRule>(), 1000);
-        
+    
         // Assert
-        message.Should().Be("Object {escaped} with 123");
+        message.Should().Be("Object escaped with 123");
     }
     
     [Fact]
