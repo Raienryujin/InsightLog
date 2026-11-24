@@ -1,3 +1,4 @@
+using System.Collections.Concurrent;
 using System.Diagnostics;
 using System.Runtime.CompilerServices;
 using InsightLog.Configuration;
@@ -11,7 +12,8 @@ namespace InsightLog;
 public sealed class InsightLogger : ILogger, IDisposable
 {
     private readonly LogOptions _options;
-    private readonly Random _sampler = Random.Shared;
+    private readonly ConcurrentDictionary<Task, bool> _activeTasks = new();
+    private long _sampleCounter;
     private bool _disposed;
     
     /// <summary>
@@ -109,8 +111,8 @@ public sealed class InsightLogger : ILogger, IDisposable
         if (_disposed) return;
         if (!IsEnabled(level)) return;
         
-        // Apply sampling
-        if (_options.SampleRate > 1 && _sampler.Next(_options.SampleRate) != 0)
+        // Apply deterministic counter-based sampling
+        if (_options.SampleRate > 1 && (Interlocked.Increment(ref _sampleCounter) % _options.SampleRate) != 0)
             return;
         
         var (message, properties) = MessageTemplateFormatter.Format(
@@ -143,12 +145,22 @@ public sealed class InsightLogger : ILogger, IDisposable
         // Write to all sinks
         if (_options.Sinks.Count > 0)
         {
-            _ = Task.Run(async () =>
+            Task writeTask = Task.Run(async () =>
             {
-                var tasks = _options.Sinks.Select(sink => 
-                    sink.WriteAsync(logEvent, CancellationToken.None));
-                await Task.WhenAll(tasks).ConfigureAwait(false);
+                try
+                {
+                    var tasks = _options.Sinks.Select(sink => 
+                        sink.WriteAsync(logEvent, CancellationToken.None));
+                    await Task.WhenAll(tasks).ConfigureAwait(false);
+                }
+                catch
+                {
+                    // Best effort: sink failure shouldn't crash app
+                }
             });
+
+            _activeTasks.TryAdd(writeTask, true);
+            _ = writeTask.ContinueWith(t => _activeTasks.TryRemove(t, out _), TaskScheduler.Default);
         }
     }
     
@@ -186,17 +198,50 @@ public sealed class InsightLogger : ILogger, IDisposable
         return Guid.NewGuid().ToString("N")[..8];
     }
     
+    /// <summary>
+    /// Flushes all pending write tasks and underlying sinks.
+    /// </summary>
+    /// <param name="cancellationToken">Optional cancellation token.</param>
+    public async Task FlushAsync(CancellationToken cancellationToken = default)
+    {
+        var active = _activeTasks.Keys.ToArray();
+        if (active.Length > 0)
+        {
+            await Task.WhenAll(active).ConfigureAwait(false);
+        }
+
+        foreach (var sink in _options.Sinks)
+        {
+            try
+            {
+                await sink.FlushAsync(cancellationToken).ConfigureAwait(false);
+            }
+            catch
+            {
+                // Best effort
+            }
+        }
+    }
+    
     /// <inheritdoc />
     public void Dispose()
     {
         if (_disposed) return;
         _disposed = true;
+
+        try
+        {
+            FlushAsync().GetAwaiter().GetResult();
+        }
+        catch
+        {
+            // Best effort
+        }
         
         foreach (var sink in _options.Sinks)
         {
             try
             {
-                sink.FlushAsync().GetAwaiter().GetResult();
                 sink.Dispose();
             }
             catch

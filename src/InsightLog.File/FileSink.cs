@@ -17,6 +17,7 @@ public class FileSink : ILogSink
     private string? _currentPath;
     private DateTime _currentDate;
     private long _currentSize;
+    private bool _disposed;
     
     /// <summary>
     /// Initializes a new instance of the FileSink class.
@@ -103,7 +104,8 @@ public class FileSink : ILogSink
                 _currentSize = 0;
             }
             
-            _currentWriter = new StreamWriter(path, append: true, Encoding.UTF8)
+            var fileStream = new FileStream(path, FileMode.Append, FileAccess.Write, FileShare.ReadWrite);
+            _currentWriter = new StreamWriter(fileStream, Encoding.UTF8)
             {
                 AutoFlush = false
             };
@@ -248,7 +250,7 @@ public class FileSink : ILogSink
 
         if (logEvent.ElapsedMs.HasValue)
         {
-            json.Append($",\"elapsedMs\":{logEvent.ElapsedMs.Value:F2}");
+            json.Append($",\"elapsedMs\":{logEvent.ElapsedMs.Value.ToString("F2", System.Globalization.CultureInfo.InvariantCulture)}");
             if (logEvent.IsSlow)
             {
                 json.Append(",\"isSlow\":true");
@@ -302,17 +304,21 @@ public class FileSink : ILogSink
         {
             json.Append("null");
         }
-        else if (value is string s)
-        {
-            json.Append($"\"{EscapeJson(s)}\"");
-        }
         else if (value is bool b)
         {
             json.Append(b ? "true" : "false");
         }
-        else if (value is IFormattable f)
+        else if (value is byte or sbyte or short or ushort or int or uint or long or ulong or float or double or decimal)
         {
-            json.Append(f.ToString(null, System.Globalization.CultureInfo.InvariantCulture));
+            json.Append(Convert.ToString(value, System.Globalization.CultureInfo.InvariantCulture));
+        }
+        else if (value is DateTime dt)
+        {
+            json.Append($"\"{dt:O}\"");
+        }
+        else if (value is DateTimeOffset dto)
+        {
+            json.Append($"\"{dto:O}\"");
         }
         else
         {
@@ -350,7 +356,20 @@ public class FileSink : ILogSink
     /// <inheritdoc />
     public void Dispose()
     {
-        _currentWriter?.Dispose();
-        _semaphore.Dispose();
+        if (_disposed) return;
+        _disposed = true;
+
+        _semaphore.Wait();
+        try
+        {
+            _currentWriter?.Flush();
+            _currentWriter?.Dispose();
+            _currentWriter = null;
+        }
+        finally
+        {
+            _semaphore.Release();
+            _semaphore.Dispose();
+        }
     }
 }

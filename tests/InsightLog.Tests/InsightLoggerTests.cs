@@ -92,6 +92,23 @@ public class InsightLoggerTests
         // Assert
         message.Should().Be("Object {escaped} with 123");
     }
+
+    [Fact]
+    public void MessageTemplateFormatter_SupportsFormatSpecifiers()
+    {
+        // Arrange
+        var template = "Elapsed time: {ElapsedMs:F2}ms, Count: {Count:D4}";
+        var args = new object?[] { 12.3456, 7 };
+
+        // Act
+        var (message, properties) = MessageTemplateFormatter.Format(
+            template, args, new List<RedactionRule>(), 1000);
+
+        // Assert
+        message.Should().Be("Elapsed time: 12.35ms, Count: 0007");
+        properties.Should().ContainKey("ElapsedMs").WhoseValue.Should().Be(12.3456);
+        properties.Should().ContainKey("Count").WhoseValue.Should().Be(7);
+    }
     
     [Fact]
     public void MessageTemplateFormatter_TruncatesLongMessages()

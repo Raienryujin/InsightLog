@@ -1,3 +1,4 @@
+using System.Globalization;
 using System.Text;
 using InsightLog.Configuration;
 using InsightLog.Sinks;
@@ -56,27 +57,30 @@ public sealed class ConsoleSink : ILogSink
             var indent = new string(' ', logEvent.ScopeDepth * 2);
             
             // Timestamp
-            System.Console.ForegroundColor = ConsoleColor.DarkGray;
+            SetColor(ConsoleColor.DarkGray);
             System.Console.Write($"[{logEvent.Timestamp:HH:mm:ss.fff}] ");
             
             // Level with color
             var (levelText, levelColor) = GetLevelDisplay(logEvent.Level);
-            System.Console.ForegroundColor = levelColor;
+            SetColor(levelColor);
             System.Console.Write($"[{levelText}] ");
             
             // Correlation ID
-            System.Console.ForegroundColor = ConsoleColor.DarkCyan;
+            SetColor(ConsoleColor.DarkCyan);
             System.Console.Write($"[corr:{logEvent.CorrelationId}] ");
             
             // Caller info
             if (_options.IncludeCallerInfo && logEvent.CallerMemberName != null)
             {
-                System.Console.ForegroundColor = ConsoleColor.DarkGray;
+                SetColor(ConsoleColor.DarkGray);
                 System.Console.Write($"[{logEvent.CallerMemberName}@{logEvent.CallerFilePath}:{logEvent.CallerLineNumber}] ");
             }
             
             // Reset color for message
-            System.Console.ForegroundColor = originalColor;
+            if (_options.UseColors)
+            {
+                System.Console.ForegroundColor = originalColor;
+            }
             
             // Message with indentation
             System.Console.WriteLine(indent + logEvent.Message);
@@ -84,7 +88,7 @@ public sealed class ConsoleSink : ILogSink
             // Properties
             if (logEvent.Properties.Count > 0)
             {
-                System.Console.ForegroundColor = ConsoleColor.DarkGray;
+                SetColor(ConsoleColor.DarkGray);
                 System.Console.Write(indent + "  ↳ props: { ");
                 
                 var first = true;
@@ -96,9 +100,9 @@ public sealed class ConsoleSink : ILogSink
                     System.Console.Write($"{key}=");
                     if (value?.ToString()?.Contains("REDACTED") == true)
                     {
-                        System.Console.ForegroundColor = ConsoleColor.DarkRed;
+                        SetColor(ConsoleColor.DarkRed);
                         System.Console.Write(value);
-                        System.Console.ForegroundColor = ConsoleColor.DarkGray;
+                        SetColor(ConsoleColor.DarkGray);
                     }
                     else
                     {
@@ -111,19 +115,19 @@ public sealed class ConsoleSink : ILogSink
             // Slow marker
             if (logEvent.IsSlow)
             {
-                System.Console.ForegroundColor = ConsoleColor.Yellow;
+                SetColor(ConsoleColor.Yellow);
                 System.Console.WriteLine(indent + "  ⚠ SLOW OPERATION");
             }
             
             // Exception
             if (logEvent.Exception != null)
             {
-                System.Console.ForegroundColor = ConsoleColor.Red;
+                SetColor(ConsoleColor.Red);
                 System.Console.WriteLine(indent + "  Exception: " + logEvent.Exception.GetType().Name);
                 System.Console.WriteLine(indent + "  " + logEvent.Exception.Message);
                 if (!string.IsNullOrEmpty(logEvent.Exception.StackTrace))
                 {
-                    System.Console.ForegroundColor = ConsoleColor.DarkRed;
+                    SetColor(ConsoleColor.DarkRed);
                     var stackLines = logEvent.Exception.StackTrace.Split('\n');
                     foreach (var line in stackLines.Take(5)) // Limit stack trace
                     {
@@ -134,8 +138,19 @@ public sealed class ConsoleSink : ILogSink
         }
         finally
         {
-            System.Console.ForegroundColor = originalColor;
-            System.Console.BackgroundColor = originalBackground;
+            if (_options.UseColors)
+            {
+                System.Console.ForegroundColor = originalColor;
+                System.Console.BackgroundColor = originalBackground;
+            }
+        }
+    }
+
+    private void SetColor(ConsoleColor color)
+    {
+        if (_options.UseColors)
+        {
+            System.Console.ForegroundColor = color;
         }
     }
     
@@ -166,7 +181,7 @@ public sealed class ConsoleSink : ILogSink
         
         if (logEvent.ElapsedMs.HasValue)
         {
-            json.Append($"\"elapsedMs\":{logEvent.ElapsedMs.Value:F2},");
+            json.Append($"\"elapsedMs\":{logEvent.ElapsedMs.Value.ToString("F2", CultureInfo.InvariantCulture)},");
             if (logEvent.IsSlow)
                 json.Append("\"isSlow\":true,");
         }
@@ -180,17 +195,7 @@ public sealed class ConsoleSink : ILogSink
                 if (!first) json.Append(',');
                 first = false;
                 json.Append($"\"{EscapeJson(key)}\":");
-                
-                if (value == null)
-                    json.Append("null");
-                else if (value is string s)
-                    json.Append($"\"{EscapeJson(s)}\"");
-                else if (value is bool b)
-                    json.Append(b ? "true" : "false");
-                else if (value is IFormattable f)
-                    json.Append(f.ToString(null, System.Globalization.CultureInfo.InvariantCulture));
-                else
-                    json.Append($"\"{EscapeJson(value.ToString() ?? "")}\"");
+                FormatJsonValue(json, value);
             }
             json.Append("},");
         }
@@ -210,6 +215,34 @@ public sealed class ConsoleSink : ILogSink
         json.Append('}');
         
         System.Console.WriteLine(json.ToString());
+    }
+
+    private static void FormatJsonValue(StringBuilder json, object? value)
+    {
+        if (value == null)
+        {
+            json.Append("null");
+        }
+        else if (value is bool b)
+        {
+            json.Append(b ? "true" : "false");
+        }
+        else if (value is byte or sbyte or short or ushort or int or uint or long or ulong or float or double or decimal)
+        {
+            json.Append(Convert.ToString(value, CultureInfo.InvariantCulture));
+        }
+        else if (value is DateTime dt)
+        {
+            json.Append($"\"{dt:O}\"");
+        }
+        else if (value is DateTimeOffset dto)
+        {
+            json.Append($"\"{dto:O}\"");
+        }
+        else
+        {
+            json.Append($"\"{EscapeJson(value.ToString() ?? "")}\"");
+        }
     }
     
     private static string EscapeJson(string value)

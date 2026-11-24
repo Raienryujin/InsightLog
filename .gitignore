@@ -30,6 +30,9 @@ bld/
 # Visual Studio 2015/2017 cache/options directory
 .vs/
 
+# Tool indexing and local state
+.tesseract*
+
 # Visual Studio Code
 .vscode/
 

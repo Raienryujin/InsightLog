@@ -14,7 +14,7 @@
     <RepositoryUrl>https://github.com/insightlog/insightlog</RepositoryUrl>
     <RepositoryType>git</RepositoryType>
     <PackageTags>logging;logger;structured-logging;context-aware;performance</PackageTags>
-    <PackageIcon>icon.png</PackageIcon>
+    <!-- <PackageIcon>icon.png</PackageIcon> -->
     <IncludeSymbols>true</IncludeSymbols>
     <SymbolPackageFormat>snupkg</SymbolPackageFormat>
   </PropertyGroup>
