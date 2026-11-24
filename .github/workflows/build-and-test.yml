@@ -16,10 +16,10 @@ jobs:
         dotnet-version: ['8.0.x']
 
     steps:
-    - uses: actions/checkout@v3
+    - uses: actions/checkout@v4
     
     - name: Setup .NET
-      uses: actions/setup-dotnet@v3
+      uses: actions/setup-dotnet@v4
       with:
         dotnet-version: ${{ matrix.dotnet-version }}
     
@@ -34,7 +34,7 @@ jobs:
     
     - name: Upload coverage reports to Codecov
       if: matrix.os == 'ubuntu-latest'
-      uses: codecov/codecov-action@v3
+      uses: codecov/codecov-action@v4
       with:
         directory: ./TestResults
         files: '*.xml'
@@ -43,7 +43,7 @@ jobs:
         fail_ci_if_error: false
     
     - name: Upload test results
-      uses: actions/upload-artifact@v3
+      uses: actions/upload-artifact@v4
       if: always()
       with:
         name: test-results-${{ matrix.os }}
@@ -55,7 +55,7 @@ jobs:
     
     - name: Upload benchmark results
       if: matrix.os == 'ubuntu-latest'
-      uses: actions/upload-artifact@v3
+      uses: actions/upload-artifact@v4
       with:
         name: benchmark-results
         path: bench/InsightLog.Benchmarks/BenchmarkDotNet.Artifacts/
